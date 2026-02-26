@@ -44,6 +44,48 @@
 3. 검증 성공 시 `X-User-Id`, `X-User-Name` 헤더를 하위 서비스에 주입
 4. 검증 실패 시 401 반환 (공개 API는 검증 없이 통과)
 
+### JWT 시크릿 키
+
+- user-service(발급)와 gateway(검증)가 동일한 시크릿 키를 사용
+- 각 서비스의 `application.properties`에 동일한 값 설정
+- 알고리즘: HMAC-SHA256 (HS256)
+- 라이브러리: `io.jsonwebtoken:jjwt` (0.12.x)
+- 토큰 만료: 24시간
+
+```properties
+# user-service, gateway 공통
+jwt.secret=starlit-jwt-secret-key-for-development-only
+jwt.expiration=86400000
+```
+
+### 공개 API (JWT 검증 제외)
+
+Gateway에서 JWT 검증 없이 통과시키는 API 목록:
+
+```
+# 인증
+POST   /api/users/signup
+POST   /api/users/login
+
+# 주식 데이터 (비회원 대시보드)
+GET    /api/stocks/**
+
+# 커뮤니티 조회
+GET    /api/community/posts
+GET    /api/community/posts/{id}
+GET    /api/community/posts/{id}/comments
+```
+
+그 외 모든 요청은 JWT 필수 (없거나 만료 시 401).
+
+### CORS 설정
+
+- Gateway에서 일괄 처리 (각 서비스에서는 설정 불필요)
+- 허용 Origin: `http://localhost:5173` (프론트엔드)
+- 허용 메서드: `GET, POST, PUT, DELETE, OPTIONS`
+- 허용 헤더: `Authorization, Content-Type`
+- Credentials: `true` (쿠키/인증 헤더 허용)
+
 ---
 
 ## 2. user-service
@@ -66,6 +108,13 @@ GET    /api/users/watchlist                # 관심종목 목록
 POST   /api/users/watchlist                # 관심종목 추가
 DELETE /api/users/watchlist/{stockCode}    # 관심종목 삭제
 ```
+
+### 비밀번호 처리
+
+- 해싱: BCrypt (Spring Security의 `BCryptPasswordEncoder`)
+- 회원가입 시 평문 → BCrypt 해싱 후 DB 저장
+- 로그인 시 입력값과 DB 해시값 비교 (`matches()`)
+- Spring Security는 BCryptPasswordEncoder만 사용하고, 필터 체인은 비활성화 (인증은 Gateway에서 처리)
 
 ### DB 스키마
 
@@ -287,7 +336,66 @@ volumes:
 
 ---
 
-## 6. 서비스 간 통신
+## 6. 공통 규격
+
+### 에러 응답 형식
+
+모든 서비스가 동일한 에러 응답 포맷을 사용한다.
+
+```json
+{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "이메일 형식이 올바르지 않습니다."
+}
+```
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| status | int | HTTP 상태 코드 |
+| code | String | 에러 코드 (대문자 스네이크) |
+| message | String | 사용자에게 보여줄 메시지 |
+
+주요 에러 코드:
+
+| 코드 | HTTP | 상황 |
+|------|------|------|
+| `VALIDATION_ERROR` | 400 | 입력값 검증 실패 |
+| `DUPLICATE_EMAIL` | 409 | 이메일 중복 |
+| `DUPLICATE_NICKNAME` | 409 | 닉네임 중복 |
+| `INVALID_CREDENTIALS` | 401 | 로그인 실패 (이메일/비밀번호 불일치) |
+| `UNAUTHORIZED` | 401 | 인증 필요 (JWT 없음/만료) |
+| `FORBIDDEN` | 403 | 권한 없음 (본인 아님) |
+| `NOT_FOUND` | 404 | 리소스 없음 |
+| `INTERNAL_ERROR` | 500 | 서버 내부 오류 |
+
+### 페이징 응답 형식
+
+목록 조회 API (종목 리스트, 게시글 목록 등)의 응답 형식:
+
+```json
+{
+  "content": [...],
+  "page": 0,
+  "size": 20,
+  "totalElements": 150,
+  "totalPages": 8
+}
+```
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| content | List | 데이터 배열 |
+| page | int | 현재 페이지 (0부터) |
+| size | int | 페이지 크기 |
+| totalElements | long | 전체 데이터 수 |
+| totalPages | int | 전체 페이지 수 |
+
+요청 파라미터: `?page=0&size=20&sort=createdAt,desc`
+
+---
+
+## 7. 서비스 간 통신
 
 | 상황 | 방식 |
 |------|------|
@@ -297,7 +405,47 @@ volumes:
 
 ---
 
-## 7. 프로젝트 디렉토리 구조
+## 8. 추가 의존성
+
+기존 build.gradle에 추가 필요한 라이브러리:
+
+| 서비스 | 라이브러리 | 용도 |
+|--------|-----------|------|
+| **gateway** | `io.jsonwebtoken:jjwt-api:0.12.6` | JWT 검증 |
+| **gateway** | `io.jsonwebtoken:jjwt-impl:0.12.6` (runtime) | JWT 구현체 |
+| **gateway** | `io.jsonwebtoken:jjwt-jackson:0.12.6` (runtime) | JWT JSON 처리 |
+| **user-service** | `io.jsonwebtoken:jjwt-api:0.12.6` | JWT 발급 |
+| **user-service** | `io.jsonwebtoken:jjwt-impl:0.12.6` (runtime) | JWT 구현체 |
+| **user-service** | `io.jsonwebtoken:jjwt-jackson:0.12.6` (runtime) | JWT JSON 처리 |
+| **user-service** | `org.springframework.boot:spring-boot-starter-security` | BCryptPasswordEncoder |
+
+---
+
+## 9. 프론트엔드 개발 환경
+
+### Vite 프록시
+
+프론트엔드(5173) → Gateway(8000) 포트가 다르므로, 개발 시 Vite 프록시 설정 필요:
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  }
+})
+```
+
+---
+
+## 10. 프로젝트 디렉토리 구조
 
 ```
 starlit/
