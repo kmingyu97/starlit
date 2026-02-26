@@ -1,0 +1,4 @@
+rootProject.name = 'starlit'
+
+include 'gateway'
+include 'services:user-service'
