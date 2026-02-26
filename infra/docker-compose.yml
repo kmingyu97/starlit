@@ -11,5 +11,31 @@ services:
     volumes:
       - user-db-data:/var/lib/postgresql/data
 
+  stock-db:
+    image: postgres:17
+    container_name: stock-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: stockdb
+      POSTGRES_USER: stock
+      POSTGRES_PASSWORD: password
+    volumes:
+      - stock-db-data:/var/lib/postgresql/data
+
+  community-db:
+    image: postgres:17
+    container_name: community-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: communitydb
+      POSTGRES_USER: community
+      POSTGRES_PASSWORD: password
+    volumes:
+      - community-db-data:/var/lib/postgresql/data
+
 volumes:
   user-db-data:
+  stock-db-data:
+  community-db-data:
