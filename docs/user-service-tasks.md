@@ -4,22 +4,22 @@
 
 ## Phase 1: 프로젝트 설정
 
-### TASK-01: 의존성 및 설정 추가
-- [ ] build.gradle에 JWT, Security 의존성 추가
-- [ ] application.properties에 JWT 설정 (secret, expiration)
-- [ ] SecurityConfig: 필터 체인 비활성화 + BCryptPasswordEncoder 빈
-- [ ] 빌드 확인
-- 커밋: `chore: user-service 의존성 및 보안 설정 추가`
+### TASK-01: 의존성 및 설정 추가 ✅
+- [x] build.gradle에 JWT, Security 의존성 추가
+- [x] application.properties에 JWT 설정 (secret, expiration)
+- [x] SecurityConfig: 필터 체인 비활성화 + BCryptPasswordEncoder 빈
+- [x] 빌드 확인
+- 커밋: `chore: user-service 의존성 및 보안 설정 추가` (c48a0ed)
 
 ## Phase 2: 공통 모듈
 
-### TASK-02: 에러 응답 공통 처리
-- [ ] ErrorResponse DTO (status, code, message)
-- [ ] ErrorCode enum
-- [ ] CustomException
-- [ ] GlobalExceptionHandler (@RestControllerAdvice)
-- [ ] 테스트: GlobalExceptionHandler 단위 테스트
-- 커밋: `feat: user-service 공통 에러 처리 구현`
+### TASK-02: 에러 응답 공통 처리 ✅
+- [x] ErrorResponse DTO (status, code, message)
+- [x] ErrorCode enum
+- [x] CustomException
+- [x] GlobalExceptionHandler (@RestControllerAdvice)
+- [x] 테스트: GlobalExceptionHandler 단위 테스트 (3건)
+- 커밋: `feat: user-service 공통 에러 처리 구현` (a4e75b5)
 
 ## Phase 3: User 도메인
 
@@ -82,5 +82,5 @@
 
 ## 진행 상태
 
-- 현재: **TASK-01부터 시작**
-- 마지막 완료: 없음
+- 현재: **TASK-03 진행 예정**
+- 마지막 완료: TASK-02 (a4e75b5)
