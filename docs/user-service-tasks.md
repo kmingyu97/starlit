@@ -23,11 +23,11 @@
 
 ## Phase 3: User 도메인
 
-### TASK-03: User 엔티티 + Repository
-- [ ] User 엔티티 (id, email, password, nickname, createdAt)
-- [ ] UserRepository (JpaRepository)
-- [ ] 테스트: existsByEmail, existsByNickname 등 Repository 테스트 (@DataJpaTest)
-- 커밋: `feat: User 엔티티 및 Repository 구현`
+### TASK-03: User 엔티티 + Repository ✅
+- [x] User 엔티티 (id, email, password, nickname, createdAt)
+- [x] UserRepository (JpaRepository)
+- [x] 테스트: existsByEmail, existsByNickname 등 Repository 테스트 (@DataJpaTest, 5건)
+- 커밋: `feat: User 엔티티 및 Repository 구현` (b9b03a2)
 
 ### TASK-04: 회원가입 API
 - [ ] SignupRequest DTO (email, password, nickname + validation)
@@ -82,5 +82,5 @@
 
 ## 진행 상태
 
-- 현재: **TASK-03 진행 예정**
-- 마지막 완료: TASK-02 (a4e75b5)
+- 현재: **TASK-04 진행 예정**
+- 마지막 완료: TASK-03 (b9b03a2)
