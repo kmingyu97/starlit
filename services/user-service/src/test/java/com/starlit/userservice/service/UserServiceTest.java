@@ -1,0 +1,131 @@
+package com.starlit.userservice.service;
+
+import com.starlit.userservice.common.exception.CustomException;
+import com.starlit.userservice.common.exception.ErrorCode;
+import com.starlit.userservice.dto.SignupRequest;
+import com.starlit.userservice.dto.SignupResponse;
+import com.starlit.userservice.entity.User;
+import com.starlit.userservice.repository.UserRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @InjectMocks
+    private UserService userService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Test
+    @DisplayName("회원가입 성공 - 유저가 저장되고 응답이 반환된다")
+    void signup_success() {
+        // given
+        SignupRequest request = new SignupRequest("test@example.com", "Password1!", "tester");
+
+        given(userRepository.existsByEmail("test@example.com")).willReturn(false);
+        given(userRepository.existsByNickname("tester")).willReturn(false);
+        given(passwordEncoder.encode("Password1!")).willReturn("encodedPassword");
+        given(userRepository.save(any(User.class))).willAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            return User.builder()
+                    .id(1L)
+                    .email(user.getEmail())
+                    .password(user.getPassword())
+                    .nickname(user.getNickname())
+                    .build();
+        });
+
+        // when
+        SignupResponse response = userService.signup(request);
+
+        // then
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("test@example.com");
+        assertThat(response.nickname()).isEqualTo("tester");
+
+        verify(passwordEncoder).encode("Password1!");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 이메일 중복 시 DUPLICATE_EMAIL 예외")
+    void signup_duplicateEmail() {
+        // given
+        SignupRequest request = new SignupRequest("dup@example.com", "Password1!", "tester");
+        given(userRepository.existsByEmail("dup@example.com")).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> userService.signup(request))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_EMAIL);
+                });
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 닉네임 중복 시 DUPLICATE_NICKNAME 예외")
+    void signup_duplicateNickname() {
+        // given
+        SignupRequest request = new SignupRequest("test@example.com", "Password1!", "dupNick");
+        given(userRepository.existsByEmail("test@example.com")).willReturn(false);
+        given(userRepository.existsByNickname("dupNick")).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> userService.signup(request))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
+                });
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("회원가입 시 비밀번호가 BCrypt로 해싱되어 저장된다")
+    void signup_passwordIsEncoded() {
+        // given
+        SignupRequest request = new SignupRequest("test@example.com", "Password1!", "tester");
+
+        given(userRepository.existsByEmail(anyString())).willReturn(false);
+        given(userRepository.existsByNickname(anyString())).willReturn(false);
+        given(passwordEncoder.encode("Password1!")).willReturn("$2a$10$hashedValue");
+        given(userRepository.save(any(User.class))).willAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            return User.builder()
+                    .id(1L)
+                    .email(user.getEmail())
+                    .password(user.getPassword())
+                    .nickname(user.getNickname())
+                    .build();
+        });
+
+        // when
+        userService.signup(request);
+
+        // then
+        verify(userRepository).save(any(User.class));
+        verify(passwordEncoder).encode("Password1!");
+    }
+}
