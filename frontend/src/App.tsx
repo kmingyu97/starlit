@@ -11,6 +11,7 @@ import HeatmapPage from './pages/HeatmapPage';
 import CommunityPage from './pages/CommunityPage';
 import PostWritePage from './pages/PostWritePage';
 import PostDetailPage from './pages/PostDetailPage';
+import WatchlistPage from './pages/WatchlistPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/write" element={<PostWritePage />} />
             <Route path="/community/:id" element={<PostDetailPage />} />
+            <Route path="/watchlist" element={<WatchlistPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

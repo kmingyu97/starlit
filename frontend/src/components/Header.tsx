@@ -29,6 +29,9 @@ function Header() {
         </Link>
         {isLoggedIn ? (
           <>
+            <Link to="/watchlist" className={styles.link}>
+              관심종목
+            </Link>
             <span className={styles.nickname}>{nickname}</span>
             <Link to="/profile" className={styles.link}>
               내 정보

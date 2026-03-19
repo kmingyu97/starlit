@@ -1,0 +1,116 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 1.5rem;
+}
+
+.addForm {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background-color: #1f2937;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #a78bfa;
+}
+
+.addBtn {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #7c3aed;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.addBtn:hover {
+  background-color: #6d28d9;
+}
+
+.error {
+  padding: 0.5rem;
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 3rem 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+}
+
+.stockInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  text-decoration: none;
+}
+
+.stockInfo:hover .name {
+  color: #a78bfa;
+}
+
+.name {
+  color: #e5e7eb;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.code {
+  color: #6b7280;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.deleteBtn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #6b7280;
+  border-radius: 4px;
+  background: none;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.deleteBtn:hover {
+  background-color: #7f1d1d;
+  border-color: #f87171;
+  color: #f87171;
+}
