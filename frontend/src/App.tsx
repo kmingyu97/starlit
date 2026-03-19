@@ -5,6 +5,8 @@ import HomePage from './pages/HomePage';
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import StockListPage from './pages/StockListPage';
+import StockDetailPage from './pages/StockDetailPage';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/stocks" element={<StockListPage />} />
+            <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
