@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import StockListPage from './pages/StockListPage';
 import StockDetailPage from './pages/StockDetailPage';
+import HeatmapPage from './pages/HeatmapPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/stocks" element={<StockListPage />} />
             <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
+            <Route path="/heatmap" element={<HeatmapPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

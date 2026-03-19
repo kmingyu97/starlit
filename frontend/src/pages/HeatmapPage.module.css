@@ -1,0 +1,91 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+}
+
+.loading {
+  text-align: center;
+  color: #9ca3af;
+  margin-top: 4rem;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.legendBar {
+  flex: 1;
+  max-width: 200px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #2563eb, #60a5fa, #93c5fd, #6b7280, #fca5a5, #f87171, #dc2626);
+}
+
+.legendDown {
+  color: #60a5fa;
+}
+
+.legendUp {
+  color: #f87171;
+}
+
+.sectors {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectorName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.stockGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem;
+}
+
+.stockCell {
+  padding: 0.6rem 0.7rem;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 55px;
+  justify-content: center;
+}
+
+.cellName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cellRate {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}

@@ -21,6 +21,9 @@ function Header() {
         <Link to="/stocks" className={styles.link}>
           종목
         </Link>
+        <Link to="/heatmap" className={styles.link}>
+          히트맵
+        </Link>
         {isLoggedIn ? (
           <>
             <span className={styles.nickname}>{nickname}</span>
