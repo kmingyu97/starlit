@@ -1,5 +1,7 @@
 package com.starlit.userservice.controller;
 
+import com.starlit.userservice.dto.LoginRequest;
+import com.starlit.userservice.dto.LoginResponse;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.service.UserService;
@@ -19,5 +21,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public SignupResponse signup(@Valid @RequestBody SignupRequest request) {
         return userService.signup(request);
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request);
     }
 }

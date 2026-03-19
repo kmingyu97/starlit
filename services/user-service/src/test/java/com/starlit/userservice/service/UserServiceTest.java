@@ -2,6 +2,9 @@ package com.starlit.userservice.service;
 
 import com.starlit.userservice.common.exception.CustomException;
 import com.starlit.userservice.common.exception.ErrorCode;
+import com.starlit.userservice.config.JwtProvider;
+import com.starlit.userservice.dto.LoginRequest;
+import com.starlit.userservice.dto.LoginResponse;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.entity.User;
@@ -13,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,6 +38,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtProvider jwtProvider;
 
     @Test
     @DisplayName("회원가입 성공 - 유저가 저장되고 응답이 반환된다")
@@ -101,6 +109,77 @@ class UserServiceTest {
 
         verify(userRepository, never()).save(any());
     }
+
+    // === 로그인 테스트 ===
+
+    @Test
+    @DisplayName("로그인 성공 - JWT 토큰과 닉네임이 반환된다")
+    void login_success() {
+        // given
+        LoginRequest request = new LoginRequest("test@example.com", "Password1!");
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("tester")
+                .build();
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        given(passwordEncoder.matches("Password1!", "encodedPassword")).willReturn(true);
+        given(jwtProvider.createToken(1L, "test@example.com")).willReturn("jwt-token");
+
+        // when
+        LoginResponse response = userService.login(request);
+
+        // then
+        assertThat(response.token()).isEqualTo("jwt-token");
+        assertThat(response.nickname()).isEqualTo("tester");
+        verify(jwtProvider).createToken(1L, "test@example.com");
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 존재하지 않는 이메일이면 INVALID_CREDENTIALS 예외")
+    void login_emailNotFound() {
+        // given
+        LoginRequest request = new LoginRequest("nouser@example.com", "Password1!");
+        given(userRepository.findByEmail("nouser@example.com")).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.login(request))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+                });
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호 불일치 시 INVALID_CREDENTIALS 예외")
+    void login_wrongPassword() {
+        // given
+        LoginRequest request = new LoginRequest("test@example.com", "WrongPass1!");
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("tester")
+                .build();
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(user));
+        given(passwordEncoder.matches("WrongPass1!", "encodedPassword")).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> userService.login(request))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+                });
+
+        verify(jwtProvider, never()).createToken(any(), any());
+    }
+
+    // === 회원가입 기타 테스트 ===
 
     @Test
     @DisplayName("회원가입 시 비밀번호가 BCrypt로 해싱되어 저장된다")
