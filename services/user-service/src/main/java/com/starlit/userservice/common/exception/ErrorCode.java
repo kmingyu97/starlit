@@ -31,6 +31,7 @@ public enum ErrorCode {
     // 409 - 중복
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
+    DUPLICATE_WATCHLIST(HttpStatus.CONFLICT, "이미 등록된 관심종목입니다."),
 
     // 500 - 서버 오류
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
