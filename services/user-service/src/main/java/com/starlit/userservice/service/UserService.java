@@ -5,6 +5,8 @@ import com.starlit.userservice.common.exception.ErrorCode;
 import com.starlit.userservice.config.JwtProvider;
 import com.starlit.userservice.dto.LoginRequest;
 import com.starlit.userservice.dto.LoginResponse;
+import com.starlit.userservice.dto.ProfileResponse;
+import com.starlit.userservice.dto.ProfileUpdateRequest;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.entity.User;
@@ -53,5 +55,28 @@ public class UserService {
 
         String token = jwtProvider.createToken(user.getId(), user.getEmail());
         return new LoginResponse(token, user.getNickname());
+    }
+
+    @Transactional(readOnly = true)
+    public ProfileResponse getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        return new ProfileResponse(user.getId(), user.getEmail(), user.getNickname(), user.getCreatedAt());
+    }
+
+    @Transactional
+    public ProfileResponse updateProfile(Long userId, ProfileUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (!user.getNickname().equals(request.nickname())
+                && userRepository.existsByNickname(request.nickname())) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        user.updateNickname(request.nickname());
+
+        return new ProfileResponse(user.getId(), user.getEmail(), user.getNickname(), user.getCreatedAt());
     }
 }

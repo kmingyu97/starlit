@@ -5,6 +5,8 @@ import com.starlit.userservice.common.exception.ErrorCode;
 import com.starlit.userservice.config.JwtProvider;
 import com.starlit.userservice.dto.LoginRequest;
 import com.starlit.userservice.dto.LoginResponse;
+import com.starlit.userservice.dto.ProfileResponse;
+import com.starlit.userservice.dto.ProfileUpdateRequest;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.entity.User;
@@ -177,6 +179,113 @@ class UserServiceTest {
                 });
 
         verify(jwtProvider, never()).createToken(any(), any());
+    }
+
+    // === 프로필 테스트 ===
+
+    @Test
+    @DisplayName("프로필 조회 성공 - 유저 정보가 반환된다")
+    void getProfile_success() {
+        // given
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("tester")
+                .build();
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        // when
+        ProfileResponse response = userService.getProfile(1L);
+
+        // then
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("test@example.com");
+        assertThat(response.nickname()).isEqualTo("tester");
+    }
+
+    @Test
+    @DisplayName("프로필 조회 실패 - 존재하지 않는 유저면 NOT_FOUND 예외")
+    void getProfile_notFound() {
+        // given
+        given(userRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.getProfile(999L))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND);
+                });
+    }
+
+    @Test
+    @DisplayName("프로필 수정 성공 - 닉네임이 변경된다")
+    void updateProfile_success() {
+        // given
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("oldNick")
+                .build();
+        ProfileUpdateRequest request = new ProfileUpdateRequest("newNick");
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("newNick")).willReturn(false);
+
+        // when
+        ProfileResponse response = userService.updateProfile(1L, request);
+
+        // then
+        assertThat(response.nickname()).isEqualTo("newNick");
+    }
+
+    @Test
+    @DisplayName("프로필 수정 실패 - 닉네임 중복 시 DUPLICATE_NICKNAME 예외")
+    void updateProfile_duplicateNickname() {
+        // given
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("oldNick")
+                .build();
+        ProfileUpdateRequest request = new ProfileUpdateRequest("takenNick");
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("takenNick")).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> userService.updateProfile(1L, request))
+                .isInstanceOf(CustomException.class)
+                .satisfies(ex -> {
+                    CustomException ce = (CustomException) ex;
+                    assertThat(ce.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
+                });
+    }
+
+    @Test
+    @DisplayName("프로필 수정 - 기존과 같은 닉네임이면 중복 체크 없이 성공한다")
+    void updateProfile_sameNickname_success() {
+        // given
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .password("encodedPassword")
+                .nickname("sameNick")
+                .build();
+        ProfileUpdateRequest request = new ProfileUpdateRequest("sameNick");
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        // when
+        ProfileResponse response = userService.updateProfile(1L, request);
+
+        // then
+        assertThat(response.nickname()).isEqualTo("sameNick");
+        verify(userRepository, never()).existsByNickname(any());
     }
 
     // === 회원가입 기타 테스트 ===

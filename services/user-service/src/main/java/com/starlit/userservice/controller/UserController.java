@@ -2,6 +2,8 @@ package com.starlit.userservice.controller;
 
 import com.starlit.userservice.dto.LoginRequest;
 import com.starlit.userservice.dto.LoginResponse;
+import com.starlit.userservice.dto.ProfileResponse;
+import com.starlit.userservice.dto.ProfileUpdateRequest;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.service.UserService;
@@ -26,5 +28,16 @@ public class UserController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return userService.login(request);
+    }
+
+    @GetMapping("/me")
+    public ProfileResponse getProfile(@RequestHeader("X-User-Id") Long userId) {
+        return userService.getProfile(userId);
+    }
+
+    @PutMapping("/me")
+    public ProfileResponse updateProfile(@RequestHeader("X-User-Id") Long userId,
+                                         @Valid @RequestBody ProfileUpdateRequest request) {
+        return userService.updateProfile(userId, request);
     }
 }

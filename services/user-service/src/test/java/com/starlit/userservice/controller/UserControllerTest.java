@@ -5,6 +5,8 @@ import com.starlit.userservice.common.exception.CustomException;
 import com.starlit.userservice.common.exception.ErrorCode;
 import com.starlit.userservice.dto.LoginRequest;
 import com.starlit.userservice.dto.LoginResponse;
+import com.starlit.userservice.dto.ProfileResponse;
+import com.starlit.userservice.dto.ProfileUpdateRequest;
 import com.starlit.userservice.dto.SignupRequest;
 import com.starlit.userservice.dto.SignupResponse;
 import com.starlit.userservice.service.UserService;
@@ -17,9 +19,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -191,5 +198,83 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    // === 프로필 API 테스트 ===
+
+    @Test
+    @DisplayName("GET /api/users/me - 프로필 조회 성공 시 200 반환")
+    void getProfile_success() throws Exception {
+        // given
+        ProfileResponse response = new ProfileResponse(1L, "test@example.com", "tester", LocalDateTime.of(2026, 3, 19, 12, 0));
+
+        given(userService.getProfile(1L)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/users/me")
+                        .header("X-User-Id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.nickname").value("tester"));
+    }
+
+    @Test
+    @DisplayName("GET /api/users/me - X-User-Id 헤더 없으면 400 반환")
+    void getProfile_missingHeader() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /api/users/me - 프로필 수정 성공 시 200 반환")
+    void updateProfile_success() throws Exception {
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest("newNick");
+        ProfileResponse response = new ProfileResponse(1L, "test@example.com", "newNick", LocalDateTime.of(2026, 3, 19, 12, 0));
+
+        given(userService.updateProfile(eq(1L), any(ProfileUpdateRequest.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(put("/api/users/me")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value("newNick"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/users/me - 닉네임 빈값이면 400 반환")
+    void updateProfile_blankNickname() throws Exception {
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest("");
+
+        // when & then
+        mockMvc.perform(put("/api/users/me")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/users/me - 닉네임 중복 시 409 반환")
+    void updateProfile_duplicateNickname() throws Exception {
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest("takenNick");
+
+        given(userService.updateProfile(eq(1L), any(ProfileUpdateRequest.class)))
+                .willThrow(new CustomException(ErrorCode.DUPLICATE_NICKNAME));
+
+        // when & then
+        mockMvc.perform(put("/api/users/me")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_NICKNAME"));
     }
 }

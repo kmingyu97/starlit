@@ -4,6 +4,7 @@ import com.starlit.userservice.common.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -60,6 +61,23 @@ public class GlobalExceptionHandler {
                         ErrorCode.VALIDATION_ERROR.getHttpStatus().value(),
                         ErrorCode.VALIDATION_ERROR.name(),
                         message
+                ));
+    }
+
+    /**
+     * 요청 바인딩 예외 처리.
+     * 필수 헤더, 쿠키, 파라미터 누락 시 발생한다.
+     */
+    @ExceptionHandler(ServletRequestBindingException.class)
+    public ResponseEntity<ErrorResponse> handleBindingException(ServletRequestBindingException ex) {
+        log.warn("Request binding failed: {}", ex.getMessage());
+
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(
+                        ErrorCode.VALIDATION_ERROR.getHttpStatus().value(),
+                        ErrorCode.VALIDATION_ERROR.name(),
+                        ex.getMessage()
                 ));
     }
 
