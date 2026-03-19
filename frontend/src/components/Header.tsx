@@ -24,6 +24,9 @@ function Header() {
         <Link to="/heatmap" className={styles.link}>
           히트맵
         </Link>
+        <Link to="/community" className={styles.link}>
+          커뮤니티
+        </Link>
         {isLoggedIn ? (
           <>
             <span className={styles.nickname}>{nickname}</span>
